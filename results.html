@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>学習記録管理アプリ-学習成果</title>
+  <link rel="stylesheet" href="style.css" />
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript">
+    google.charts.load('current', { 'packages': ['corechart'] });
+    google.charts.setOnLoadCallback(drawChart);
+
+    window.onload = function () {
+      // 期間選択のコンボボックス要素を取得
+      const periodSelect = document.getElementById("period");
+
+      // コンボボックスの値が変更された時のイベントリスナーを追加
+      periodSelect.addEventListener("change", () => {
+        drawChart(); // drawChart 関数を再実行
+      });
+    };
+
+    function parseDuration(durationString) {
+      var [hours, minutes] = durationString.split(':').map(Number); // ":" で分割して数値に変換
+      return hours + minutes / 60;
+    }
+
+    function drawChart() {
+      // 選択された期間を取得
+      const period = document.getElementById("period").value;
+
+      // API を呼び出して学習成果を取得
+      fetch(`http://localhost:8080/results?period=${period}`, {
+        credentials: 'include',	// cookieを含めて送信
+      })
+        // period をクエリパラメータに追加
+        .then((response) => {
+          console.log("response:", response); // レスポンスを出力
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((results) => {
+          // results が存在し、かつ要素数が0より大きい場合のみ処理を行う
+          if (results && results.length > 0) {
+            console.log("results:", results); // results 配列の中身を出力
+            // Google Charts の DataTable に変換
+            var data = new google.visualization.DataTable();
+            console.log("data: ", data); // DataTable の中身を出力
+            data.addColumn('string', 'Category');
+            data.addColumn('number', 'TotalTime');
+            results.forEach((result) => {
+              var duration = parseDuration(result.totalTime); // totalTime を時間に変換
+              data.addRow([result.category, duration]);
+            });
+
+            // グラフのオプションを設定
+            var options = {
+              title: '学習成果',
+              is3D: true, // 3D表示
+              width: 700, // グラフの幅
+              height: 500,  // グラフの高さ
+            };
+
+            // グラフを描画
+            var chart = new google.visualization.PieChart(document.getElementById('learningGraph'));
+            console.log("chart: ", chart); // google.visualization.PieChart の戻り値を出力
+            chart.draw(data, options);
+          } else {
+            // データが0件の場合の処理 
+            const chartArea = document.getElementById('learningGraph');
+            chartArea.innerHTML = "<p>データがありません。</p>";
+          }
+        })
+        .catch((error) => {
+          console.error("エラーが発生しました:", error);
+        });
+    }
+  </script>
+  <script>
+    // ログアウト処理
+    function logout() {
+      // API サーバーにログアウトリクエストを送信
+      fetch("http://localhost:8080/logout", {
+        method: "POST",
+        credentials: 'include',	// cookieを含めて送信
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          console.log("サーバーからのレスポンス:", data);
+          window.location.href = "auth.html"; // auth.html に遷移
+        })
+        .catch((error) => {
+          console.error("エラーが発生しました:", error);
+          // TODO: エラー時の処理 (例: エラーメッセージを表示)
+          alert("ログアウトしました。");
+        });
+    }
+
+  </script>
+</head>
+
+<body>
+  <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+    <h1 style="margin-top: 5px;">学習成果</h1>
+    <div style="text-align: right;">
+      <button onclick="logout()">ログアウト</button>
+    </div>
+  </div>
+  <div class="result-container">
+    <label for="period">期間:</label>
+    <select id="period">
+      <option value="day">今日</option>
+      <option value="week">1週間</option>
+      <option value="month">1ヶ月</option>
+      <option value="year">1年</option>
+    </select>
+    <div id="learningGraph"></div>
+    <button onclick="window.location.href='index.html'">戻る</button>
+  </div>
+
+</body>
+
+</html>

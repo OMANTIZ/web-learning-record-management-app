@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>学習記録管理アプリ</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+    <h1 style="margin-top: 5px;">メイン画面 - 一覧画面</h1>
+    <div style="text-align: right;">
+      <button onclick="logout()">ログアウト</button>
+    </div>
+  </div>
+  <div class="index-container">
+    <div id="learningInput">
+      <div class="date">
+        <label for="date">日付:</label>
+        <input type="date" id="date">
+      </div>
+
+      <div class="time">
+        <label for="start-time">開始時間:</label>
+        <input type="time" id="start-time">
+        ～
+        <label for="end-time">終了時間:</label>
+        <input type="time" id="end-time">
+        <div class="category">
+          <label for="category">分野(自由入力):</label>
+          <input type="text" id="category">
+        </div>
+
+        <button id="registerButton">登録</button>
+        <button id="updateButton" style="display: none">修正登録</button>
+      </div>
+
+      <div class="records"></div>
+      <button class="show-results" onclick="window.location.href='results.html'">成果を表示</button>
+    </div>
+  </div>
+
+  <script src="index.js"></script>
+</body>
+
+</html>
